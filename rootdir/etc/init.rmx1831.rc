@@ -1,0 +1,53 @@
+on boot
+    write /proc/tfa98xx/oppo_tfa98xx_fw_update 1
+    chown system system /proc/tfa98xx/oppo_tfa98xx_fw_update
+    chown system system /proc/tfa98xx/ftm_tfa98xx_v6
+    
+on fs
+    chown system system /dev/goodix_fp
+     
+on post-fs-data
+
+on property:sys.boot_completed=1
+    setprop vendor.oppo.biometrics.fingerprint.boot_completed 1
+
+#Fingerprint
+    chmod 0666 /dev/goodix_fp
+
+# Logger
+    start boot_log
+    start boot_log_crash
+    start boot_log_kernel
+    
+# Logger
+service boot_log /system/bin/logcat -b all -D -f /cache/boot_log_full.txt
+    class main
+    user root
+    group root system
+    disabled
+    oneshot
+
+service boot_log_crash /system/bin/logcat -b crash -D -f /cache/boot_log_crash.txt
+    class main
+    user root
+    group root system
+    disabled
+    oneshot
+
+service boot_log_kernel /system/bin/logcat -b kernel -D -f /cache/boot_log_kernel.txt
+    class main
+    user root
+    group root system
+    disabled
+    oneshot
+
+on early-boot
+    start boot_log
+    start boot_log_crash
+    start boot_log_kernel
+
+on property:sys.boot_completed=1
+# Stop the logger service
+    stop boot_log
+    stop boot_log_crash
+    stop boot_log_kernel
